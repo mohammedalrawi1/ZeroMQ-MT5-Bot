@@ -1,0 +1,68 @@
+{"buy by market": {
+  "numericCode": "10009",
+  "stringCode": "TRADE_RETCODE_DONE",
+  "message": "Request completed",
+  "orderId": "2096593",
+  "positionId": "2096593",
+  "tradeExecutionTime": "2023-06-14T19:52:40.693Z",
+  "tradeStartTime": "2023-06-14T19:52:40.155Z"
+}, 
+"pending order": {
+  "numericCode": 10009,
+  "stringCode": "TRADE_RETCODE_DONE",
+  "message": "Request completed",
+  "orderId": "2096594",
+  "tradeExecutionTime": "2023-06-14T19:52:40.919Z",
+  "tradeStartTime": "2023-06-14T19:52:40.383Z"
+},
+"current pending orders": [
+  {
+    "id": "2096594",
+    "platform": "mt5",
+    "type": "ORDER_TYPE_BUY_STOP",
+    "state": "ORDER_STATE_PLACED",
+    "symbol": "XAUUSD.c",
+    "magic": 0,
+    "time": "2023-06-14T19:52:40.419Z",
+    "brokerTime": "2023-06-14 22:52:40.419",
+    "openPrice": 2050,
+    "volume": 0.1,
+    "currentVolume": 0.1,
+    "positionId": "2096594",
+    "reason": "ORDER_REASON_EXPERT",
+    "fillingMode": "ORDER_FILLING_RETURN",
+    "expirationType": "ORDER_TIME_GTC",
+    "currentPrice": 1947.17,
+    "accountCurrencyExchangeRate": 1,
+    "updateSequenceNumber": 1686772360419005
+  }
+],
+"current positions":[
+  {
+    "id": "2096709",
+    "platform": "mt5",
+    "type": "POSITION_TYPE_BUY",
+    "symbol": "XAUUSD.c",
+    "magic": 0,
+    "time": "2023-06-14T19:59:59.151Z",
+    "brokerTime": "2023-06-14 22:59:59.151",
+    "updateTime": "2023-06-14T19:59:59.151Z",
+    "openPrice": 1945.2,
+    "volume": 0.1,
+    "swap": 0,
+    "commission": 0,
+    "realizedSwap": 0,
+    "realizedCommission": 0,
+    "unrealizedSwap": 0,
+    "unrealizedCommission": 0,
+    "reason": "POSITION_REASON_EXPERT",
+    "currentPrice": 1946.08,
+    "currentTickValue": 0.1,
+    "realizedProfit": 0,
+    "unrealizedProfit": 0.88,
+    "profit": 0.88,
+    "accountCurrencyExchangeRate": 1,
+    "updateSequenceNumber": 1686772799151013
+  }
+]
+}

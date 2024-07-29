@@ -1,0 +1,17 @@
+{
+  "name": "Trading App",
+  "short_name": "Trading App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fcfafa",
+  "theme_color": "#202123",
+  "id": "tradingbot",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "https://socket.mohammedalrawi.com/dashboard/assets/IOS-icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg"
+    }
+  ]
+}
