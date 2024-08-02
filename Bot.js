@@ -880,9 +880,10 @@ class Position {
           });
           break;
       }
-      await this.#trade.udpateLogs({
-        msg: `${this.type} position has been closed.`,
-      });
+      if (this.#trade.hasOwnProperty("updateLogs"))
+        await this.#trade.udpateLogs({
+          msg: `${this.type} position has been closed.`,
+        });
     } catch (err) {
       await this.#trade.updateLogs({
         msg: `Couldn't close ${this.type} postion ${this.ticket}`,

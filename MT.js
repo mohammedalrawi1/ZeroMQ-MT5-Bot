@@ -1,5 +1,6 @@
 const zmq = require("zeromq");
 const EventEmitter = require("events");
+const ZMQBuffer = require("./ZMQBuffer.js");
 
 class MT {
   constructor({
@@ -19,12 +20,12 @@ class MT {
     this.emitter = new EventEmitter();
     this.trades = {};
     this.init();
+    this.buffer = new ZMQBuffer({ mt: this });
   }
 
   async init() {
     console.log("Initializing MT . . . ");
     this.reqSocket = await this.reqSocketConnect();
-    this.backupReqSocket = await this.backupReqSocketConnect();
     this.subSocketConnect();
     this.posSubSocketConnect();
     this.initialized = true;
@@ -35,18 +36,6 @@ class MT {
 
     console.log(
       `[REQ] Connecting socket to MT5 Server on link: ${this.reqLink} . . .`
-    );
-    await sock.connect(this.reqLink);
-    console.log("Request Socket has been connected to MT5 server.");
-
-    return sock;
-  }
-
-  async backupReqSocketConnect() {
-    const sock = new zmq.Request();
-
-    console.log(
-      `[BUREQ] Connecting socket to MT5 Server on link: ${this.reqLink} . . .`
     );
     await sock.connect(this.reqLink);
     console.log("Request Socket has been connected to MT5 server.");
@@ -135,15 +124,12 @@ class MT {
       volume,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      throw jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async sellStopOrder({ symbol, price, sl, tp, volume }) {
@@ -158,15 +144,12 @@ class MT {
       volume,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      throw jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async buyOrder({ symbol, sl, tp, volume }) {
@@ -181,16 +164,12 @@ class MT {
     };
 
     console.log(req);
-
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      throw jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async sellOrder({ symbol, sl, tp, volume }) {
@@ -206,15 +185,12 @@ class MT {
 
     console.log(req);
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      throw jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async cancelOrder({ ticket, msg }) {
@@ -225,15 +201,12 @@ class MT {
       ticket,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      throw jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async closePosition({ ticket }) {
@@ -243,15 +216,12 @@ class MT {
       ticket,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      throw jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async partialClose({ ticket, percentage }) {
@@ -264,15 +234,12 @@ class MT {
 
     console.log({ req });
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      console.log(jsonResult);
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async modifyPosition({ ticket, sl, tp }) {
@@ -284,15 +251,12 @@ class MT {
       ticket,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      this.error(jsonResult);
-      throw jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async symbolSubscribe({ symbol }) {
@@ -301,16 +265,12 @@ class MT {
       symbol,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      // this.error(jsonResult);
-      // TODO: make this a "throw jsonResult" after debugging
-      return jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult;
   }
 
   async symbolUnsubscribe({ symbol }) {
@@ -319,16 +279,11 @@ class MT {
       symbol,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.error) {
-      // this.error(jsonResult);
-      // throw jsonResult;
-    } else {
-      this.subscribedSymbols[symbol] = {};
-      return jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
     }
   }
   async getSymbolPrice({ symbol }) {
@@ -338,11 +293,12 @@ class MT {
       symbol,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    return jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async getSymbolSpecifications({ symbol }) {
@@ -352,11 +308,12 @@ class MT {
       symbol,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    return jsonResult;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async updateMetaData() {
@@ -365,9 +322,12 @@ class MT {
       task: "METADATA",
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    await this.reqSocket.receive();
-    return;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async calculateProfit({ symbol, gap }) {
@@ -399,31 +359,27 @@ class MT {
       symbol,
       volume,
     };
-
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    if (jsonResult.currencyMargin != "USD") {
-      if (jsonResult.symbol.match(/USD$/)) {
-        jsonResult.requiredMargin =
-          jsonResult.requiredMargin * jsonResult.price;
+    try {
+      let response = await this.buffer.send(req);
+      if (response.currencyMargin != "USD") {
+        if (response.symbol.match(/USD$/)) {
+          response.requiredMargin = response.requiredMargin * response.price;
+        } else {
+          let newSymbol = await this.getSymbolPrice({
+            symbol: `${response.symbol.match(/^.{3}/)}USD`,
+          });
+          response.requiredMargin = response.requiredMargin * newSymbol.price;
+        }
       } else {
-        let newSymbol = await this.getSymbolPrice({
-          symbol: `${jsonResult.symbol.match(/^.{3}/)}USD`,
-        });
-        jsonResult.requiredMargin = jsonResult.requiredMargin * newSymbol.price;
+        if (response.symbol.match(/USD$/)) {
+          response.requiredMargin =
+            volume * response.initial * response.contractSize * response.price;
+        }
       }
-    } else {
-      if (jsonResult.symbol.match(/USD$/)) {
-        jsonResult.requiredMargin =
-          volume *
-          jsonResult.initial *
-          jsonResult.contractSize *
-          jsonResult.price;
-      }
+      return response.requiredMargin;
+    } catch (err) {
+      throw err;
     }
-    return jsonResult.requiredMargin;
   }
 
   async getAverageMovement({ symbol, mins }) {
@@ -434,12 +390,13 @@ class MT {
       mins,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let jsonResult = JSON.parse(result.toString());
-    jsonResult = classify(jsonResult);
-    let average = jsonResult.average;
-    return average;
+    try {
+      let response = await this.buffer.send(req);
+      console.log({ averageMove: response });
+      return response.average;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async getMinutePrice({ symbol, min }) {
@@ -450,12 +407,12 @@ class MT {
       min,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let price = JSON.parse(result.toString());
-    price = classify(price);
-    console.log(price);
-    return price;
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async getPastMinutes({ symbol, mins }) {
@@ -466,16 +423,16 @@ class MT {
       mins,
     };
 
-    await this.reqSocket.send(JSON.stringify(req));
-    let [result] = await this.reqSocket.receive();
-    let response = JSON.parse(result.toString());
-    response = classify(response);
-    let minutesArray = JSON.parse(response.minutes);
-    minutesArray.reverse();
-    let floatArray = minutesArray.map((str) => parseFloat(str));
-    floatArray.unshift(undefined);
-    console.log(floatArray);
-    return floatArray;
+    try {
+      let response = await this.buffer.send(req);
+      let minutesArray = JSON.parse(response.minutes);
+      minutesArray.reverse();
+      let floatArray = minutesArray.map((str) => parseFloat(str));
+      floatArray.unshift(undefined);
+      return floatArray;
+    } catch (err) {
+      throw err;
+    }
   }
 
   error(err) {
