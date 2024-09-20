@@ -99,6 +99,7 @@ body {
   height: auto;
   background-color: var(--frmbgclr);
   padding: 0 20px;
+  margin-bottom: 40px;
   box-sizing: border-box;
 }
 

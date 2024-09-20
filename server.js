@@ -197,6 +197,21 @@ app.get("/cache_manifest", (req, res) => {
   );
 });
 
+app.use("/.well-known", (req, res, next) => {
+  console.log(req.url)
+  // let root = "C://nginx/html/.well-known";
+  next();
+
+  // res.sendFile(`${root}${req.url}`, {
+  //   headers: {
+  //     'Content-Type': 'application/octet-stream',
+  //     'Content-Disposition': `attachment; filename="${req.url.replace(/^.*\//g, "")}"`
+  //   }
+  // });
+}, 
+express.static("C://nginx/html/.well-known", {dotfiles: "allow"})
+)
+
 // redirecting users to the proper path
 app.use(
   "/",

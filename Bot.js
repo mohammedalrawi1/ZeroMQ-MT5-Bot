@@ -358,9 +358,9 @@ class Trade {
 
     let symbolPrice = this.#bot.mt.subscribedSymbols[this.symbol];
 
-    if (this.calculatedGap < symbolPrice.ask - symbolPrice.bid) {
-      this.calculatedGap = symbolPrice.ask - symbolPrice.bid;
-    }
+    // if (this.calculatedGap < symbolPrice.ask - symbolPrice.bid) {
+    //   this.calculatedGap = symbolPrice.ask - symbolPrice.bid;
+    // }
 
     await this.updateLogs({
       msg: `Gap has been calculated: ${this.calculatedGap}`,
@@ -372,18 +372,23 @@ class Trade {
     await this.gapCalculate();
     let metaData = await db.read("metadata", { username: "mohammedalrawi" });
 
-    if (this.marginPercentage != "0") {
-      let marginPerLot = await this.#bot.mt.requiredMargin({
-        symbol: this.symbol,
-      });
+    if (this.marginPercentage == "0") {
+      this.marginPercentage = 100;
+    }
+    let marginPerLot = await this.#bot.mt.requiredMargin({
+      symbol: this.symbol,
+    });
 
-      //TODO: I should check if the trades are fully closed, so the equity is not affected, because if another trade is opened while this trade is executed, the equity would not be the same, and it may cause problems starting the trade
-      // let equity = marketPrice.equity;
-      let freeMargin = metaData[0].freeMargin;
+    //TODO: I should check if the trades are fully closed, so the equity is not affected, because if another trade is opened while this trade is executed, the equity would not be the same, and it may cause problems starting the trade
+    // let equity = marketPrice.equity;
+    let freeMargin = metaData[0].freeMargin;
 
-      this.volume =
-        Math.round((freeMargin / marginPerLot) * this.marginPercentage) / 100;
-    } else if (this.maximumLoss != "0") {
+    let maximumVolume =
+      Math.round((freeMargin / marginPerLot) * this.marginPercentage) / 100;
+
+    maximumVolume = maximumVolume.toFixed(2);
+
+    if (this.maximumLoss != "0") {
       let profitPerLot = await this.#bot.mt.calculateProfit({
         symbol: this.symbol,
         gap: (this.calculatedGap * Math.abs(this.slOffset)) / 100,
@@ -398,12 +403,36 @@ class Trade {
       }
       let volume = riskAmount / profitPerLot;
       this.volume = volume.toFixed(2);
+      if (this.volume > maximumVolume) {
+        this.volume = maximumVolume;
+      }
     }
 
     await this.updateLogs({
       msg: `Volume has been calculated: ${this.volume}`,
     });
     return this.volume;
+  }
+
+  async updateOrders(spread) {
+    // This function is called whenever the prices are updated
+
+    try {
+      await this.buyPosition.modifyOrder({
+        price: this.buyPrices.open + spread,
+        sl: this.buyPrices.sl + spread,
+      });
+
+      await this.sellPosition.modifyOrder({
+        price: this.sellPrices.open - spread,
+        sl: this.sellPrices.sl - spread,
+      });
+
+      this.updatingOrders = false;
+    } catch (err) {
+      console.log(err);
+      this.updatingOrders = false;
+    }
   }
 }
 
@@ -448,52 +477,38 @@ class Position {
     }
     let bidPrice = parseFloat(marketPrice.bid);
     let askPrice = parseFloat(marketPrice.ask);
+    let spread = askPrice - bidPrice;
+
+    this.#trade.buyPrices = {
+      open: askPrice + this.#trade.calculatedGap,
+      sl:
+        bidPrice +
+        this.#trade.calculatedGap -
+        (this.#trade.calculatedGap * 2 * Math.abs(this.#trade.slOffset)) / 100,
+    };
+    this.#trade.sellPrices = {
+      open: bidPrice - this.#trade.calculatedGap,
+      sl:
+        askPrice -
+        this.#trade.calculatedGap +
+        (this.#trade.calculatedGap * 2 * Math.abs(this.#trade.slOffset)) / 100,
+    };
 
     try {
-      console.log({
-        buyOrder: {
-          symbol: this.#trade.symbol,
-          volume: this.#trade.volume,
-          price: askPrice + this.#trade.calculatedGap,
-          sl:
-            bidPrice +
-            this.#trade.calculatedGap -
-            (this.#trade.calculatedGap * 2 * Math.abs(this.#trade.slOffset)) /
-              100,
-        },
-        sellOrder: {
-          symbol: this.#trade.symbol,
-          volume: this.#trade.volume,
-          price: bidPrice - this.#trade.calculatedGap,
-          sl:
-            askPrice -
-            this.#trade.calculatedGap +
-            (this.#trade.calculatedGap * 2 * Math.abs(this.#trade.slOffset)) /
-              100,
-        },
-      });
       let order;
       if (this.type == "POSITION_TYPE_BUY") {
         order = await this.#bot.mt.buyStopOrder({
           symbol: this.#trade.symbol,
           volume: this.#trade.volume,
-          price: askPrice + this.#trade.calculatedGap,
-          sl:
-            bidPrice +
-            this.#trade.calculatedGap -
-            (this.#trade.calculatedGap * 2 * Math.abs(this.#trade.slOffset)) /
-              100,
+          price: this.#trade.buyPrices.open + spread,
+          sl: this.#trade.buyPrices.sl + spread,
         });
       } else if (this.type == "POSITION_TYPE_SELL") {
         order = await this.#bot.mt.sellStopOrder({
           symbol: this.#trade.symbol,
           volume: this.#trade.volume,
-          price: bidPrice - this.#trade.calculatedGap,
-          sl:
-            askPrice -
-            this.#trade.calculatedGap +
-            (this.#trade.calculatedGap * 2 * Math.abs(this.#trade.slOffset)) /
-              100,
+          price: this.#trade.sellPrices.open - spread,
+          sl: this.#trade.sellPrices.sl - spread,
         });
       }
       this.ticket = order.ticket;
@@ -536,6 +551,19 @@ class Position {
       }
     });
 
+    this.#bot.mt.emitter.on("symbol", async (data) => {
+      // console.log("HELLLLLLOOOOOOOOOOOOOOO!");
+      // console.log(data);
+      if (
+        data.symbol == this.symbol &&
+        this.#trade.state == "executed" &&
+        !this.#trade.updatingOrders
+      ) {
+        this.#trade.updatingOrders = true;
+        await this.#trade.updateOrders(data.spread);
+      }
+    });
+
     this.#bot.mt.emitter.on("positionClose", async (pos) => {
       // console.log({ position: `has been deleted and closed the trade.` });
       console.log({ closedPosition: pos });
@@ -564,7 +592,7 @@ class Position {
         console.log("closing opposite . . .");
         try {
           await this.#oppositePosition.close(true);
-          this.#trade.doubleRisk = true;
+          // this.#trade.doubleRisk = true;
         } catch (err) {
           console.log(err);
         }
@@ -594,10 +622,10 @@ class Position {
     }
     if (
       (this.type == "POSITION_TYPE_BUY" &&
-        this.profit > 0 &&
+        this.profit >= 0 &&
         this.sl < this.currentPrice) ||
       (this.type == "POSITION_TYPE_SELL" &&
-        this.profit > 0 &&
+        this.profit >= 0 &&
         this.sl > this.currentPrice)
     ) {
       console.log("trying to secure position");
@@ -669,6 +697,32 @@ class Position {
       await this.#trade.updateLogs({
         msg: `${this.type} position hasn't been able to be modified`,
         err,
+      });
+      throw err;
+    }
+  }
+
+  async modifyOrder({ price, sl, tp }) {
+    try {
+      console.log(`modifyingOrder: ${this.ticket}`);
+      await this.#bot.mt.modifyOrder({
+        ticket: this.ticket,
+        price,
+        sl,
+        tp,
+      });
+
+      await this.#trade.updateLogs({
+        msg: `order ${this.ticket} has been modified to: {price: ${price},
+        sl: ${sl},
+        tp: ${tp}}`,
+      });
+
+      return true;
+    } catch (err) {
+      console.log(err);
+      await this.#trade.updateLogs({
+        msg: `order ${this.ticket} hasn't been able to be modified`,
       });
     }
   }
@@ -976,7 +1030,7 @@ class Position {
   }
 
   async checkPartialClose() {
-    // this function does not run when the trade is secured.
+    // this function should not run when the trade is secured.
     if (this.partiallyClosed || !this.#trade.doubleRisk) return;
     this.#trade.partialClosePercentage = Number(
       this.#trade.partialClosePercentage

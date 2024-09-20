@@ -128,16 +128,17 @@ class TradesPage extends Page {
       options: {
         type: "select",
         values: [
-          "XAUUSD",
-          "EURUSD",
-          "USDJPY",
-          "GBPUSD",
-          "EURGBP",
-          "AUDUSD",
-          "USDCAD",
-          "USDCHF",
-          "NZDUSD",
-          "GBPJPY",
+          "EURUSD#",
+          "GOLD#",
+          "USDJPY#",
+          "GBPUSD#",
+          "EURGBP#",
+          "AUDUSD#",
+          "USDCAD#",
+          "USDCHF#",
+          "NZDUSD#",
+          "GBPJPY#",
+          "OILCash",
         ],
       },
     });
@@ -159,7 +160,7 @@ class TradesPage extends Page {
       options: {
         type: "number",
         placeholder: 60,
-        value: 0,
+        value: 80,
       },
     });
 
@@ -170,7 +171,7 @@ class TradesPage extends Page {
       options: {
         type: "number",
         placeholder: 60,
-        value: 0,
+        value: 70,
       },
     });
 
@@ -184,7 +185,7 @@ class TradesPage extends Page {
         placeholder: 10,
         value: 10,
       },
-      typeValue: "$",
+      typeValue: "%",
     });
 
     this.gap = new InputField({
@@ -195,7 +196,7 @@ class TradesPage extends Page {
       options: {
         type: "float",
         placeholder: 5,
-        value: 1,
+        value: 1.5,
       },
       typeValue: "average",
     });

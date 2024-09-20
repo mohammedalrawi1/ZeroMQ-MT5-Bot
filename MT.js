@@ -60,6 +60,7 @@ class MT {
     for await (const [message] of subscriber) {
       let newData = JSON.parse(message);
       newData = classify(newData);
+      newData.spread = newData.ask - newData.bid;
       if (!this.subscribedSymbols.hasOwnProperty(newData.symbol)) {
         this.subscribedSymbols[newData.symbol] = newData;
         this.emitter.emit("symbol", newData);
@@ -259,6 +260,24 @@ class MT {
     }
   }
 
+  async modifyOrder({ ticket, price, sl, tp }) {
+    let req = {
+      method: "TRADE",
+      action: "MODIFY_ORDER",
+      ticket,
+      price,
+      sl,
+      tp,
+    };
+
+    try {
+      let response = await this.buffer.send(req);
+      return response;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async symbolSubscribe({ symbol }) {
     let req = {
       method: "SUB",
@@ -280,8 +299,8 @@ class MT {
     };
 
     try {
-      let response = await this.buffer.send(req);
-      return response;
+      // let response = await this.buffer.send(req);
+      return true;
     } catch (err) {
       throw err;
     }
@@ -343,7 +362,7 @@ class MT {
         profit = profit / bid;
       } else if (specifications.currencyMargin != "USD") {
         let { price } = await this.getSymbolPrice({
-          symbol: `USD${specifications.currencyProfit}`,
+          symbol: `USD${specifications.currencyProfit}#`,
         });
         profit = profit / price;
       }
@@ -362,16 +381,16 @@ class MT {
     try {
       let response = await this.buffer.send(req);
       if (response.currencyMargin != "USD") {
-        if (response.symbol.match(/USD$/)) {
+        if (response.symbol.match(/USD#$/)) {
           response.requiredMargin = response.requiredMargin * response.price;
         } else {
           let newSymbol = await this.getSymbolPrice({
-            symbol: `${response.symbol.match(/^.{3}/)}USD`,
+            symbol: `${response.symbol.match(/^.{3}/)}USD#`,
           });
           response.requiredMargin = response.requiredMargin * newSymbol.price;
         }
       } else {
-        if (response.symbol.match(/USD$/)) {
+        if (response.symbol.match(/USD#$/)) {
           response.requiredMargin =
             volume * response.initial * response.contractSize * response.price;
         }
