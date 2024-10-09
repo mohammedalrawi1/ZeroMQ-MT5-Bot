@@ -592,7 +592,7 @@ class Position {
         console.log("closing opposite . . .");
         try {
           await this.#oppositePosition.close(true);
-          // this.#trade.doubleRisk = true;
+          this.#trade.doubleRisk = true;
         } catch (err) {
           console.log(err);
         }
@@ -667,11 +667,11 @@ class Position {
 
     await this.checkPartialClose();
     if (this.secured == true) return;
-    if (this.profit > 0 && oldProfit < 0) {
+    if (this.profit >= 0 && (oldProfit < 0 || !oldProfit)) {
       console.log("secureing");
       this.secureTimeout = setTimeout(() => {
         this.secure();
-      }, 5000);
+      }, 3000);
     } else if (this.profit < 0 && oldProfit > 0) {
       console.log("remove secure");
       clearTimeout(this.secureTimeout);
@@ -783,13 +783,13 @@ class Position {
     let currentMinutePrice;
 
     await new Promise((resolve) => {
-      setTimeout(async () => {
-        currentMinutePrice = await THIS.#bot.mt.getMinutePrice({
-          symbol: THIS.symbol,
-          min: 1,
-        });
-        resolve();
-      }, 2000);
+      // setTimeout(async () => {
+      //   currentMinutePrice = await THIS.#bot.mt.getMinutePrice({
+      //     symbol: THIS.symbol,
+      //     min: 1,
+      //   });
+      //   resolve();
+      // }, 2000);
     });
 
     if (THIS.hitTargetStops.length == 23) {
