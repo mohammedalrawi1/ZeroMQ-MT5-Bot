@@ -416,23 +416,21 @@ class Trade {
 
   async updateOrders(spread) {
     // This function is called whenever the prices are updated
-
-    try {
-      await this.buyPosition.modifyOrder({
-        price: this.buyPrices.open + spread,
-        sl: this.buyPrices.sl + spread,
-      });
-
-      await this.sellPosition.modifyOrder({
-        price: this.sellPrices.open - spread,
-        sl: this.sellPrices.sl - spread,
-      });
-
-      this.updatingOrders = false;
-    } catch (err) {
-      console.log(err);
-      this.updatingOrders = false;
-    }
+    // closed for maintainance purposes
+    //   try {
+    //     await this.buyPosition.modifyOrder({
+    //       price: this.buyPrices.open + spread,
+    //       sl: this.buyPrices.sl + spread,
+    //     });
+    //     await this.sellPosition.modifyOrder({
+    //       price: this.sellPrices.open - spread,
+    //       sl: this.sellPrices.sl - spread,
+    //     });
+    //     this.updatingOrders = false;
+    //   } catch (err) {
+    //     console.log(err);
+    //     this.updatingOrders = false;
+    //   }
   }
 }
 
@@ -970,6 +968,7 @@ class Position {
     let stopMechanism = "ma10";
     console.log("start tracking");
     let count = 0;
+    let dynamicMinutes = 10;
     this.trackingTimer = schedule.scheduleJob("*/1 * * * *", async () => {
       console.log("tracking timer");
 
@@ -986,6 +985,34 @@ class Position {
 
       const THIS = this;
 
+      if (stopMechanism == "dynamicTrailing") {
+        let pastMinutes = await THIS.#bot.mt.getPastMinutes({
+          symbol: THIS.symbol,
+          mins: dynamicMinutes,
+        });
+
+        let lastMinute = pastMinutes[pastMinutes.length - 1];
+        let lastMinuteDiff = lastMinute.open - lastMinute.close;
+
+        if (this.type == "POSITION_TYPE_BUY") {
+          this.modify({
+            sl: Math.min(
+              pastMinutes.map((a) => Math.min(a.low, a.open, a.close, a.high))
+            ),
+          });
+          if (lastMinuteDiff > 0) dynamicMinutes++;
+          else dynamicMinutes--;
+        } else if (this.type == "POSITION_TYPE_SELL") {
+          this.modify({
+            sl: Math.max(
+              pastMinutes.map((a) => Math.max(a.low, a.open, a.close, a.high))
+            ),
+          });
+          if (lastMinuteDiff < 0) dynamicMinutes++;
+          else dynamicMinutes--;
+        }
+      }
+
       if (stopMechanism == "ma10") {
         let pastMinutes = await THIS.#bot.mt.getPastMinutes({
           symbol: THIS.symbol,
@@ -996,8 +1023,15 @@ class Position {
 
         function checkVirtualMAStop({ stop, ma }) {
           // if (THIS.hitTargetStops.includes(stop)) return;
-          let maAverage = getAverage(pastMinutes, ma);
-          let lastMaAverage = getAverage(pastMinutes, ma, 1);
+          let maAverage = getAverage(
+            pastMinutes.map((a) => a.low),
+            ma
+          );
+          let lastMaAverage = getAverage(
+            pastMinutes.map((a) => a.low),
+            ma,
+            1
+          );
           console.log({ maAverage, lastMaAverage });
           if (
             (THIS.type == "POSITION_TYPE_BUY" && maAverage < lastMaAverage) ||
