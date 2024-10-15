@@ -965,7 +965,7 @@ class Position {
 
   // for tracking and setting the stoploss to a specified point, so the trade would be profitable when it hits the stoploss
   async track() {
-    let stopMechanism = "ma10";
+    let stopMechanism = "dynamicTrailing";
     console.log("start tracking");
     let count = 0;
     let dynamicMinutes = 10;
@@ -991,25 +991,26 @@ class Position {
           mins: dynamicMinutes,
         });
 
-        let lastMinute = pastMinutes[pastMinutes.length - 1];
-        let lastMinuteDiff = lastMinute.open - lastMinute.close;
+        let lastMinute = pastMinutes[0];
+        let lastMinuteDiff = lastMinute.close - lastMinute.open;
+        console.log({ pastMinutes });
 
         if (this.type == "POSITION_TYPE_BUY") {
-          this.modify({
-            sl: Math.min(
-              pastMinutes.map((a) => Math.min(a.low, a.open, a.close, a.high))
-            ),
-          });
+          let lowest = pastMinutes.reduce(
+            (min, current) => (current.low < min ? current.low : min),
+            pastMinutes[0].low
+          );
+          this.modify({ sl: lowest });
           if (lastMinuteDiff > 0) dynamicMinutes++;
-          else dynamicMinutes--;
+          else if (lastMinuteDiff < 0) dynamicMinutes--;
         } else if (this.type == "POSITION_TYPE_SELL") {
-          this.modify({
-            sl: Math.max(
-              pastMinutes.map((a) => Math.max(a.low, a.open, a.close, a.high))
-            ),
-          });
+          let highest = pastMinutes.reduce(
+            (max, current) => (current.high > max ? current.high : max),
+            pastMinutes[0].high
+          );
+          this.modify({ sl: highest });
           if (lastMinuteDiff < 0) dynamicMinutes++;
-          else dynamicMinutes--;
+          else if (lastMinuteDiff > 0) dynamicMinutes--;
         }
       }
 

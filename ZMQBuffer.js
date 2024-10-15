@@ -43,7 +43,10 @@ class ZMQBuffer {
     await this.mt.reqSocket.send(JSON.stringify(req.data));
     let [result] = await this.mt.reqSocket.receive();
     let jsonResult = JSON.parse(result.toString());
+    console.log({ jsonResult });
     jsonResult = this.classify(jsonResult);
+    console.log({ jsonResult });
+
     if (jsonResult.error) {
       throw jsonResult;
     } else {
@@ -107,6 +110,7 @@ class ZMQBuffer {
       ask: "number",
       bid: "number",
       magic: "number",
+      minutes: "skip",
     };
 
     let newObj = {};
@@ -126,6 +130,8 @@ class ZMQBuffer {
           case "string":
             newObj[key] = obj[key];
             break;
+          case "skip":
+            return obj;
           default:
             newObj[key] = obj[key];
             break;

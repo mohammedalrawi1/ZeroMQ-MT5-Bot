@@ -444,10 +444,10 @@ class MT {
 
     try {
       let response = await this.buffer.send(req);
-      let minutesArray = JSON.parse(response.minutes);
+      let minutesArray = response.minutes;
       minutesArray.reverse();
-      let floatArray = minutesArray.map((str) => parseFloat(str));
-      floatArray.unshift(undefined);
+      let floatArray = minutesArray.map((obj) => this.buffer.classify(obj));
+      // floatArray.unshift(undefined);
       return floatArray;
     } catch (err) {
       throw err;
