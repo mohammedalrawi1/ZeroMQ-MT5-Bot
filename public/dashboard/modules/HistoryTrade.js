@@ -16,38 +16,38 @@ class HistoryTrade {
       "history-trade-headding"
     );
 
-    this.headdingElement.addEventListener("click", () => {
-      if (!this.element.className.includes("expanded")) {
-        anime({
-          targets: this.element,
-          height: (e) => {
-            let children = e.children;
-            let height = 0;
-            for (let i = 0; i < children.length; i++) {
-              const child = children[i];
-              const style = window.getComputedStyle(child);
-              let marginTop = parseFloat(style.marginTop);
-              let marginBottom = parseFloat(style.marginBottom);
-              height += child.offsetHeight + marginTop;
-            }
-            return height;
-          },
-          // easing: "easeOutElastic(1, .8)",
-          duration: 500,
-        });
-      } else {
-        anime({
-          targets: this.element,
-          height: (e) => {
-            let children = e.children;
-            return children[0].offsetHeight;
-          },
-          // easing: "easeOutElastic(1, .8)",
-          duration: 500,
-        });
-      }
-      this.element.classList.toggle("expanded");
-    });
+    // this.headdingElement.addEventListener("click", () => {
+    //   if (!this.element.className.includes("expanded")) {
+    //     anime({
+    //       targets: this.element,
+    //       height: (e) => {
+    //         let children = e.children;
+    //         let height = 0;
+    //         for (let i = 0; i < children.length; i++) {
+    //           const child = children[i];
+    //           const style = window.getComputedStyle(child);
+    //           let marginTop = parseFloat(style.marginTop);
+    //           let marginBottom = parseFloat(style.marginBottom);
+    //           height += child.offsetHeight + marginTop;
+    //         }
+    //         return height;
+    //       },
+    //       // easing: "easeOutElastic(1, .8)",
+    //       duration: 500,
+    //     });
+    //   } else {
+    //     anime({
+    //       targets: this.element,
+    //       height: (e) => {
+    //         let children = e.children;
+    //         return children[0].offsetHeight;
+    //       },
+    //       // easing: "easeOutElastic(1, .8)",
+    //       duration: 500,
+    //     });
+    //   }
+    //   this.element.classList.toggle("expanded");
+    // });
 
     this.idElement = this.headdingElement.createE(
       "h2",

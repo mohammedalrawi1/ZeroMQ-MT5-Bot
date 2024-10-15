@@ -28,10 +28,11 @@ class App {
     this.pageContainer = this.element.createE("div", "#page-container", {
       style: {
         width: "100%",
-        height: "100%",
+        height: "100vh",
         display: "flex",
         justifyContent: "center",
         backgroundColor: "#fbfafa",
+        overflow: "hidden",
       },
     });
 

@@ -71,8 +71,15 @@ app.get("/news", isAuthMW, async (req, res) => {
   //   });
 });
 
-app.get("/history", isAuthMW, async (req, res) => {
-  let historyTrades = await db.read("trades");
+app.get("/history/:id?", isAuthMW, async (req, res) => {
+  let historyTrades;
+  if (req.params.id) {
+    historyTrades = await db.readLimit("trades", {
+      id: { $lt: parseInt(req.params.id) },
+    });
+  } else {
+    historyTrades = await db.readLimit("trades");
+  }
   res.json(historyTrades);
 });
 
@@ -197,20 +204,22 @@ app.get("/cache_manifest", (req, res) => {
   );
 });
 
-app.use("/.well-known", (req, res, next) => {
-  console.log(req.url)
-  // let root = "C://nginx/html/.well-known";
-  next();
+app.use(
+  "/.well-known",
+  (req, res, next) => {
+    console.log(req.url);
+    // let root = "C://nginx/html/.well-known";
+    next();
 
-  // res.sendFile(`${root}${req.url}`, {
-  //   headers: {
-  //     'Content-Type': 'application/octet-stream',
-  //     'Content-Disposition': `attachment; filename="${req.url.replace(/^.*\//g, "")}"`
-  //   }
-  // });
-}, 
-express.static("C://nginx/html/.well-known", {dotfiles: "allow"})
-)
+    // res.sendFile(`${root}${req.url}`, {
+    //   headers: {
+    //     'Content-Type': 'application/octet-stream',
+    //     'Content-Disposition': `attachment; filename="${req.url.replace(/^.*\//g, "")}"`
+    //   }
+    // });
+  },
+  express.static("C://nginx/html/.well-known", { dotfiles: "allow" })
+);
 
 // redirecting users to the proper path
 app.use(

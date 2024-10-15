@@ -79,6 +79,22 @@ class MongoDB {
     }
   }
 
+  async readLimit(collection, obj = {}, limit = 20, skip = 0) {
+    collection = this.getCollectionByName(collection);
+    try {
+      let result = await collection
+        .find(obj)
+        .sort({ id: -1 }) // Sort by _id in descending order
+        .skip(skip) // Skip the first 'skip' documents
+        .limit(limit) // Limit the number of documents to 'limit'
+        .toArray();
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
   async update(collection, obj = {}, modified = {}) {
     collection = this.getCollectionByName(collection);
     try {

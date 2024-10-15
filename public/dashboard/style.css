@@ -96,15 +96,41 @@ body {
   display: none;
   flex-direction: column;
   width: 100%;
-  height: auto;
+  height: 100%;
   background-color: var(--frmbgclr);
   padding: 0 20px;
   margin-bottom: 40px;
   box-sizing: border-box;
+  overflow: scroll;
+}
+
+.page::-webkit-scrollbar {
+  width: 20px;
+}
+
+.page::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.page::-webkit-scrollbar-thumb {
+  background-color: #d6dee1;
+  border-radius: 20px;
+  min-height: 40px;
 }
 
 .input-container {
   padding: 10px 0;
+}
+
+.page::-webkit-scrollbar-thumb {
+  background-color: #d6dee1;
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+.page::-webkit-scrollbar-thumb:hover {
+  background-color: #a8bbbf;
 }
 
 .input {
@@ -389,12 +415,12 @@ tr.news-table-row.low {
 }
 
 .history-trade {
-  /* height: auto; */
+  height: auto;
   background-color: #f1f0f0;
   border-radius: 17px;
   padding: 5px 30px 30px 30px;
   margin: 10px;
-  overflow: hidden;
+  /* overflow: hidden; */
   position: relative;
 }
 
@@ -511,6 +537,11 @@ tr.news-table-row.low {
 @media only screen and (max-width: 920px) {
   #app {
     flex-direction: column;
+    height: 100vh;
+  }
+
+  #page-container {
+    height: auto;
   }
 
   #nav-bar {
